@@ -1,18 +1,34 @@
 #include <iomanip>
 #include <cmath>
 #include "MassiveBody.h"
+#include <iostream>
 
 int MassiveBody::objCount = 0;
+const double MassiveBody::SI_TIME_STEP = 0.1;
+const double MassiveBody::SI_NEWTON_G = 6.674308e-11;
 
 MassiveBody::MassiveBody(std::string name, double siMass, double siRadius, Vec2 initSIPos)
-    : id(MassiveBody::objCount++), name(name), siMass(siMass), siRadius(siRadius)
+    : id(MassiveBody::objCount++), type(SolarSysBody::NONE), name(name), siMass(siMass), siRadius(siRadius)
 {
     this->siPos = initSIPos;
     this->siVel = Vec2(0, 0);
 }
 
 MassiveBody::MassiveBody(std::string name, double siMass, double siRadius, Vec2 initSIPos, Vec2 initSIVel)
-    : id(MassiveBody::objCount++), name(name), siMass(siMass), siRadius(siRadius)
+    : id(MassiveBody::objCount++), type(SolarSysBody::NONE), name(name), siMass(siMass), siRadius(siRadius)
+{
+    this->siPos = initSIPos;
+    this->siVel = initSIVel;
+}
+
+MassiveBody::MassiveBody(SolarSysBody type, Vec2 initSIPos)
+    : id(MassiveBody::objCount++), type(type), name(SOLAR_SYS_SI_NAMES.at(type)), siMass(SOLAR_SYS_SI_MASSES.at(type)), siRadius(SOLAR_SYS_SI_RADII.at(type))
+{
+    this->siPos = initSIPos;
+}
+
+MassiveBody::MassiveBody(SolarSysBody type, Vec2 initSIPos, Vec2 initSIVel)
+    : id(MassiveBody::objCount++), type(type), name(SOLAR_SYS_SI_NAMES.at(type)), siMass(SOLAR_SYS_SI_MASSES.at(type)), siRadius(SOLAR_SYS_SI_RADII.at(type))
 {
     this->siPos = initSIPos;
     this->siVel = initSIVel;
@@ -63,6 +79,11 @@ Vec2 MassiveBody::getSIVelOrbital(MassiveBody& mb, bool clockwise)
     return speed * dir;
 }
 
+void MassiveBody::attemptOrbit(MassiveBody& mb, bool clockwise)
+{
+    this->siVel = this->getSIVelOrbital(mb, clockwise);
+}
+
 Vec2 MassiveBody::getSIGravForce(MassiveBody& mb)
 {
     if (mb == *this)
@@ -73,7 +94,7 @@ Vec2 MassiveBody::getSIGravForce(MassiveBody& mb)
     Vec2 r = this->getSIPos() - mb.getSIPos();
     Vec2 dir = r.unit();
 
-    double scalarForce = (-SI_NEWTON_G * this->getSIMass() * mb.getSIMass() / (r.magn() * r.magn()));
+    double scalarForce = (-MassiveBody::SI_NEWTON_G * this->getSIMass() * mb.getSIMass() / (r.magn() * r.magn()));
 
     return scalarForce * dir;
 }
@@ -84,7 +105,7 @@ Vec2 MassiveBody::getSIGravForceNet(std::vector<std::reference_wrapper<MassiveBo
 
     for (MassiveBody& mb : mbs)
     {
-        sum += mb.getSIGravForce(*this);
+        sum += this->getSIGravForce(mb);
     }
 
     return sum;
@@ -95,16 +116,16 @@ Vec2 MassiveBody::getSIAccel(Vec2 siGravForceNet)
     return siGravForceNet / this->getSIMass();
 }
 
-void MassiveBody::move(Vec2 siGravForceNet, double dt)
+void MassiveBody::budge(Vec2 siGravForceNet)
 {
-    this->siVel += this->getSIAccel(siGravForceNet) * dt;
-    this->siPos += this->siVel * dt;
+    this->siVel += this->getSIAccel(siGravForceNet) * MassiveBody::SI_TIME_STEP;
+    this->siPos += this->siVel * MassiveBody::SI_TIME_STEP;
 }
 
-void MassiveBody::orbit(MassiveBody& mb, bool clockwise, double dt)
+void MassiveBody::budgeInOrbit(MassiveBody& mb, bool clockwise)
 {
     this->siVel = this->getSIVelOrbital(mb, clockwise);
-    this->siPos += this->siVel * dt;
+    this->siPos += this->siVel * MassiveBody::SI_TIME_STEP;
 }
 
 bool operator==(const MassiveBody& mb1, const MassiveBody& mb2)
@@ -119,11 +140,10 @@ bool operator!=(const MassiveBody& mb1, const MassiveBody& mb2)
 
 std::ostream& operator<<(std::ostream& out, const MassiveBody& mb)
 {
-    out << "'" << mb.getName() << "'" << " [Object ID: " << mb.getID() << "]" << std::endl;
-
-    out << "  " << std::setw(10) << std::left << "Mass: " << mb.getSIMass() << " kg" << std::endl;
-    out << "  " << std::setw(10) << std::left << "Radius: " << mb.getSIRadius() << " m" << std::endl;
-    out << "  " << std::setw(10) << std::left << "Position: " << mb.getSIPos() << std::endl;
+    out << "'" << mb.getName() << "'";
+    out << "[ID: " << mb.getID() << ", ";
+    out << "M: " << mb.getSIMass() << "kg, ";
+    out << "R: " << mb.getSIRadius() << "m, " << std::endl;
 
     return out;
 }

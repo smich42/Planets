@@ -25,20 +25,20 @@ bool operator!=(const Vec2&, const Vec2&);
 
 Vec2 operator+(const Vec2&, const Vec2&);
 
-void operator+=(Vec2&, const Vec2&);
+Vec2& operator+=(Vec2&, const Vec2&);
 
 Vec2 operator-(const Vec2&, const Vec2&);
 
-void operator-=(Vec2&, const Vec2&);
+Vec2& operator-=(Vec2&, const Vec2&);
 
 Vec2 operator*(const Vec2&, const double);
 
 Vec2 operator*(const double, const Vec2&);
 
-void operator*=(Vec2&, const double);
+Vec2& operator*=(Vec2&, const double);
 
 Vec2 operator/(const Vec2&, const double);
 
-void operator/=(Vec2&, const double);
+Vec2& operator/=(Vec2&, const double);
 
 std::ostream& operator<<(std::ostream&, const Vec2&);

@@ -4,7 +4,7 @@
 
 Vec2::Vec2()
 {
-    Vec2(0, 0);
+    this->x = this->y = 0;
 }
 
 Vec2::Vec2(double x, double y)
@@ -56,9 +56,9 @@ Vec2 operator+(const Vec2& a, const Vec2& b)
     return Vec2(a.x + b.x, a.y + b.y);
 }
 
-void operator+=(Vec2& a, const Vec2& b)
+Vec2& operator+=(Vec2& a, const Vec2& b)
 {
-    a = a + b;
+    return (a = a + b);
 }
 
 Vec2 operator-(const Vec2& a, const Vec2& b)
@@ -66,9 +66,9 @@ Vec2 operator-(const Vec2& a, const Vec2& b)
     return Vec2(a.x - b.x, a.y - b.y);
 }
 
-void operator-=(Vec2& a, const Vec2& b)
+Vec2& operator-=(Vec2& a, const Vec2& b)
 {
-    a = a - b;
+    return (a = a - b);
 }
 
 Vec2 operator*(const Vec2& v, const double k)
@@ -81,9 +81,9 @@ Vec2 operator*(const double k, const Vec2& v)
     return v * k;
 }
 
-void operator*=(Vec2& v, const double k)
+Vec2& operator*=(Vec2& v, const double k)
 {
-    v = v * k;
+    return (v = v * k);
 }
 
 Vec2 operator/(const Vec2& v, const double k)
@@ -91,9 +91,9 @@ Vec2 operator/(const Vec2& v, const double k)
     return v * (1 / k);
 }
 
-void operator/=(Vec2& v, const double k)
+Vec2& operator/=(Vec2& v, const double k)
 {
-    v = v / k;
+    return (v = v / k);
 }
 
 std::ostream& operator<<(std::ostream& out, const Vec2& v)

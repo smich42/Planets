@@ -155,12 +155,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MassiveBody.cpp" />
-    <ClCompile Include="MassSystem.cpp" />
+    <ClCompile Include="MassSysIsolated.cpp" />
+    <ClCompile Include="MassSysIsolatedDisplay.cpp" />
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MassiveBody.h" />
-    <ClInclude Include="MassSystem.h" />
+    <ClInclude Include="MassSysIsolated.h" />
+    <ClInclude Include="MassSysIsolatedDisplay.h" />
     <ClInclude Include="SolarSysData.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>

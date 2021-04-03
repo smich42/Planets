@@ -4,6 +4,7 @@
 // Bodies in the solar system with radii >400km
 const enum class SolarSysBody
 {
+    NONE,
     SUN,
     JUPITER,
     SATURN,
@@ -115,4 +116,98 @@ static const std::unordered_map<SolarSysBody, double> SOLAR_SYS_SI_RADII = {
     { SolarSysBody::CERES,     470e3 },
     { SolarSysBody::ORCUS,     458e3 },
     { SolarSysBody::SALACIA,   423e3 },
+};
+
+struct Colour
+{
+    uint8_t r, g, b;
+
+    Colour()
+    {
+        this->r = this->g = this->b = 255;
+    }
+
+    Colour(uint8_t r, uint8_t g, uint8_t b)
+    {
+        this->r = r;
+        this->g = g;
+        this->b = b;
+    }
+};
+
+static const std::unordered_map<SolarSysBody, Colour> SOLAR_SYS_SI_COLOURS = {
+    { SolarSysBody::SUN,      Colour(255, 160, 0) },
+    { SolarSysBody::JUPITER,  Colour() },
+    { SolarSysBody::SATURN,   Colour() },
+    { SolarSysBody::URANUS,   Colour() },
+    { SolarSysBody::NEPTUNE,  Colour() },
+    { SolarSysBody::EARTH,    Colour(0, 150, 255) },
+    { SolarSysBody::VENUS,    Colour() },
+    { SolarSysBody::MARS,     Colour(255, 80, 0) },
+    { SolarSysBody::GANYMEDE, Colour() },
+    { SolarSysBody::TITAN,    Colour() },
+    { SolarSysBody::MERCURY,  Colour() },
+    { SolarSysBody::CALLISTO, Colour() },
+    { SolarSysBody::IO,       Colour() },
+    { SolarSysBody::LUNA,     Colour(210, 210, 210) },
+    { SolarSysBody::EUROPA,   Colour() },
+    { SolarSysBody::TRITON,   Colour() },
+    { SolarSysBody::PLUTO,    Colour() },
+    { SolarSysBody::ERIS,     Colour() },
+    { SolarSysBody::TITANIA,  Colour() },
+    { SolarSysBody::HAUMEA,   Colour() },
+    { SolarSysBody::RHEA,     Colour() },
+    { SolarSysBody::OBERON,   Colour() },
+    { SolarSysBody::IAPETUS,  Colour() },
+    { SolarSysBody::MAKEMAKE, Colour() },
+    { SolarSysBody::GONGGONG, Colour() },
+    { SolarSysBody::CHARON,   Colour() },
+    { SolarSysBody::UMBRIEL,  Colour() },
+    { SolarSysBody::ARIEL,    Colour() },
+    { SolarSysBody::DIONE,    Colour() },
+    { SolarSysBody::QUAOAR,   Colour() },
+    { SolarSysBody::TETHYS,   Colour() },
+    { SolarSysBody::SEDNA,    Colour() },
+    { SolarSysBody::CERES,    Colour() },
+    { SolarSysBody::ORCUS,    Colour() },
+    { SolarSysBody::SALACIA,  Colour() },
+};
+
+
+static const std::unordered_map<SolarSysBody, std::string> SOLAR_SYS_SI_NAMES = {
+    { SolarSysBody::SUN,      "SUN" },
+    { SolarSysBody::JUPITER,  "JUPITER" },
+    { SolarSysBody::SATURN,   "SATURN" },
+    { SolarSysBody::URANUS,   "URANUS" },
+    { SolarSysBody::NEPTUNE,  "NEPTUNE" },
+    { SolarSysBody::EARTH,    "EARTH" },
+    { SolarSysBody::VENUS,    "VENUS" },
+    { SolarSysBody::MARS,     "MARS" },
+    { SolarSysBody::GANYMEDE, "GANYMEDE" },
+    { SolarSysBody::TITAN,    "TITAN" },
+    { SolarSysBody::MERCURY,  "MERCURY" },
+    { SolarSysBody::CALLISTO, "CALLISTO" },
+    { SolarSysBody::IO,       "IO" },
+    { SolarSysBody::LUNA,     "LUNA" },
+    { SolarSysBody::EUROPA,   "EUROPA" },
+    { SolarSysBody::TRITON,   "TRITON" },
+    { SolarSysBody::PLUTO,    "PLUTO" },
+    { SolarSysBody::ERIS,     "ERIS" },
+    { SolarSysBody::TITANIA,  "TITANIA" },
+    { SolarSysBody::HAUMEA,   "HAUMEA" },
+    { SolarSysBody::RHEA,     "RHEA" },
+    { SolarSysBody::OBERON,   "OBERON" },
+    { SolarSysBody::IAPETUS,  "IAPETUS" },
+    { SolarSysBody::MAKEMAKE, "MAKEMAKE" },
+    { SolarSysBody::GONGGONG, "GONGGONG" },
+    { SolarSysBody::CHARON,   "CHARON" },
+    { SolarSysBody::UMBRIEL,  "UMBRIEL" },
+    { SolarSysBody::ARIEL,    "ARIEL" },
+    { SolarSysBody::DIONE,    "DIONE" },
+    { SolarSysBody::QUAOAR,   "QUAOAR" },
+    { SolarSysBody::TETHYS,   "TETHYS" },
+    { SolarSysBody::SEDNA,    "SEDNA" },
+    { SolarSysBody::CERES,    "CERES" },
+    { SolarSysBody::ORCUS,    "ORCUS" },
+    { SolarSysBody::SALACIA,  "SALACIA" },
 };

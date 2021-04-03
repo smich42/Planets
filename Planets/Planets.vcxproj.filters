@@ -24,7 +24,10 @@
     <ClCompile Include="Vec2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MassSystem.cpp">
+    <ClCompile Include="MassSysIsolated.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MassSysIsolatedDisplay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,10 +38,13 @@
     <ClInclude Include="Vec2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MassSystem.h">
+    <ClInclude Include="MassSysIsolated.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SolarSysData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MassSysIsolatedDisplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
