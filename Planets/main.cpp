@@ -15,6 +15,7 @@
 #include "MassSysIsolated.h"
 #include "SolarSysData.h"
 #include "MassSysIsolatedDisplay.h"
+#include "HUDDisplay.h"
 
 #define BACKGROUND_COLOUR sf::Color(5, 10, 30)
 
@@ -24,7 +25,7 @@
 #define SCALING_THRESHOLD 40.0f
 
 #define MAX_ZOOM (float)5.0e3
-#define MIN_ZOOM (1.0f / (float)MAX_ZOOM)
+#define MIN_ZOOM (0.8f)
 
 void handleResizeEvent(sf::RenderWindow& window, const sf::Event& e, const float& resultantZoom)
 {
@@ -76,6 +77,26 @@ void panScreen(sf::RenderWindow& window, const sf::Vector2f& offset)
     window.setView(view);
 }
 
+void drawFPS(sf::RenderWindow& window, int fpsCount, float resultantZoom)
+{
+    sf::Font fpsFont;
+    sf::Text fps;
+
+    fpsFont.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
+    fps.setFont(fpsFont);
+
+    fps.setCharacterSize(16);
+    fps.setFillColor(sf::Color(70, 230, 50));
+    fps.setScale(resultantZoom, resultantZoom);
+
+    fps.setString(std::to_string(fpsCount) + " fps");
+
+    sf::FloatRect fpsTextBounds = fps.getGlobalBounds();
+    fps.setPosition(window.mapPixelToCoords(sf::Vector2i(0, 0)));
+
+    window.draw(fps);
+}
+
 int main()
 {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -100,19 +121,29 @@ int main()
     moon.attemptOrbit(earth, true);
 
     MassSysIsolated msi({ sun, earth,  moon, mars });
-    MassSysIsolatedDisplay msiDisplay(msi);
-
-    std::atomic<bool> posUpdaterRunning{ true };
-    std::mutex mu;
-    std::future posUpdater = std::async(std::launch::async, &MassSysIsolatedDisplay::calcPositions, msiDisplay, std::ref(posUpdaterRunning), &mu);
+    MassSysIsolatedDisplay msiDisplay(msi, window);
+    HUDDisplay hudDisplay(window);
 
     sf::Vector2f mousePosPrev;
     bool panning = false;
 
     bool debug = false;
+    sf::Clock physicsClock;
+    sf::Clock fpsClock;
+    sf::Time accumulator = sf::microseconds(0);
+    sf::Time physicsTime = sf::microseconds(100);
 
     while (window.isOpen())
     {
+        accumulator += physicsClock.getElapsedTime();
+        physicsClock.restart();
+
+        while (accumulator >= physicsTime)
+        {
+            msiDisplay.msi.budgeAll(physicsTime.asSeconds() * 1000);
+            accumulator -= physicsTime;
+        }
+
         sf::Event e;
 
         while (window.pollEvent(e))
@@ -120,7 +151,6 @@ int main()
             switch (e.type)
             {
             case sf::Event::Closed:
-                posUpdaterRunning = false;
                 window.close();
                 break;
 
@@ -181,9 +211,17 @@ int main()
         window.clear(BACKGROUND_COLOUR);
 
         DrawingOptions options = { 15, resultantZoom, SCALING_THRESHOLD, debug };
-        sf::Font labelFont;
 
-        msiDisplay.drawAll(window, options);
+        msiDisplay.drawAll(options);
+        hudDisplay.drawAll(options);
+
+        if (debug)
+        {
+            int fpsCount = (int)1.0f / fpsClock.getElapsedTime().asSeconds();
+            drawFPS(window, fpsCount, resultantZoom);
+        }
+
+        fpsClock.restart();
 
         window.display();
     }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Display.h"
 #include "MassSysIsolated.h"
 #include <atomic>
 #include <unordered_map>
@@ -18,13 +19,6 @@ struct MBDrawable
     }
 };
 
-struct DrawingOptions
-{
-    int pxLabelYSpacing;
-    float zoom;
-    float scalingThreshold;
-    bool debug;
-};
 
 struct HistoricalRenderData
 {
@@ -32,14 +26,12 @@ struct HistoricalRenderData
     unsigned int renderings;
 };
 
-class MassSysIsolatedDisplay
+class MassSysIsolatedDisplay : public Display
 {
 private:
     static const double SI_UNIT_MULTIPLIER;
     static const unsigned int TRAIL_VERTEX_COUNT_MAX;
     static const unsigned int RENDERINGS_PER_VERTEX;
-
-    static sf::Font font;
 
     static sf::Color colourOf(MassiveBody& mb);
 
@@ -49,20 +41,18 @@ private:
     void makeMBLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos);
 
     void applyZoom(MBDrawable& pd, DrawingOptions& options);
-    void formLabelStacks(std::vector<MBDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options);
+    void formLabelStacks(std::vector<MBDrawable>& planetDrawables, DrawingOptions& options);
 
     std::vector<MBDrawable> getUnprocessedPlanetDrawables();
-    std::vector<MBDrawable> getProcessedPlanetDrawables(const sf::RenderWindow& window, DrawingOptions& options);
-
-    template<typename T>
-    void drawBounds(sf::RenderWindow& window, T& text);
+    std::vector<MBDrawable> getProcessedPlanetDrawables(DrawingOptions& options);
 
 public:
     MassSysIsolated& msi;
     std::unordered_map<unsigned int, HistoricalRenderData> mbRenderingData;
 
-    MassSysIsolatedDisplay(MassSysIsolated& msi);
+    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window);
+    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::Font font);
 
-    void calcPositions(std::atomic<bool>& running, std::mutex* mu);
-    void drawAll(sf::RenderWindow& window, DrawingOptions& options);
+    void calcPositionsAsync(std::atomic<bool>& running, std::mutex* mu);
+    void drawAll(DrawingOptions& options) override;
 };

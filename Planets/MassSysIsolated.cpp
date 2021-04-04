@@ -21,10 +21,10 @@ void MassSysIsolated::addBodies(std::vector<std::reference_wrapper<MassiveBody>>
     this->mbs.insert(std::end(this->mbs), std::begin(mbsToAdd), std::end(mbsToAdd));
 }
 
-void MassSysIsolated::budgeAll()
+void MassSysIsolated::budgeAll(double dt)
 {
     for (MassiveBody& mb : this->mbs)
     {
-        mb.budge(mb.getSIGravForceNet(this->mbs));
+        mb.budge(mb.getSIGravForceNet(this->mbs), dt);
     }
 }

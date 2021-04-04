@@ -49,8 +49,8 @@ public:
     Vec2 getSIGravForceNet(std::vector<std::reference_wrapper<MassiveBody>> mbs);
     Vec2 getSIAccel(Vec2 siGravForceNet);
 
-    void budge(Vec2 siGravForceNet);
-    void budgeInOrbit(MassiveBody& mb, bool clockwise);
+    void budge(Vec2 siGravForceNet, double dt);
+    void budgeInOrbit(MassiveBody& mb, bool clockwise, double dt);
 };
 
 bool operator==(const MassiveBody&, const MassiveBody&);

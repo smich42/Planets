@@ -13,5 +13,5 @@ public:
     void addBody(MassiveBody& mbToAdd);
     void addBodies(std::vector<std::reference_wrapper<MassiveBody>> mbsToAdd);
 
-    void budgeAll();
+    void budgeAll(double dt);
 };

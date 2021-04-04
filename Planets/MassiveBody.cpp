@@ -126,16 +126,16 @@ Vec2 MassiveBody::getSIAccel(Vec2 siGravForceNet)
     return siGravForceNet / this->getSIMass();
 }
 
-void MassiveBody::budge(Vec2 siGravForceNet)
+void MassiveBody::budge(Vec2 siGravForceNet, double dt)
 {
-    this->siVel += this->getSIAccel(siGravForceNet) * MassiveBody::SI_TIME_STEP;
-    this->siPos += this->siVel * MassiveBody::SI_TIME_STEP;
+    this->siVel += this->getSIAccel(siGravForceNet) * dt;
+    this->siPos += this->siVel * dt;
 }
 
-void MassiveBody::budgeInOrbit(MassiveBody& mb, bool clockwise)
+void MassiveBody::budgeInOrbit(MassiveBody& mb, bool clockwise, double dt)
 {
     this->siVel = this->getSIVelOrbital(mb, clockwise);
-    this->siPos += this->siVel * MassiveBody::SI_TIME_STEP;
+    this->siPos += this->siVel * dt;
 }
 
 bool operator==(const MassiveBody& mb1, const MassiveBody& mb2)
