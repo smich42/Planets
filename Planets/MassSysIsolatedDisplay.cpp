@@ -6,6 +6,7 @@
 
 const double MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR = 1.0e-5;
 const unsigned int MassSysIsolatedDisplay::TRAIL_SIZE_MAX = (unsigned int)1.0e4;
+
 sf::Font MassSysIsolatedDisplay::font{};
 
 MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi) : msi(msi)
@@ -136,7 +137,7 @@ void MassSysIsolatedDisplay::applyZoom(PlanetDrawable& pd, DrawingOptions& optio
     pd.labelBackdrop.setScale(options.zoom, options.zoom);
 }
 
-// TODO: Fix -- doesn't work if zoomed out
+// TODO: Bugfix -- doesn't work if zoomed out & moving (???)
 void MassSysIsolatedDisplay::formLabelStacks(std::vector<PlanetDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options)
 {
     std::sort(planetDrawables.begin(), planetDrawables.end());
@@ -167,16 +168,18 @@ void MassSysIsolatedDisplay::formLabelStacks(std::vector<PlanetDrawable>& planet
 
 void MassSysIsolatedDisplay::drawAll(sf::RenderWindow& window, DrawingOptions& options)
 {
-    for (PlanetDrawable pd : this->getProcessedPlanetDrawables(window, options))
-    {
-        if (options.debug)
-        {
-            this->drawBounds(window, pd.circle);
-            this->drawBounds(window, pd.label);
-        }
+    std::vector<PlanetDrawable> pds = this->getProcessedPlanetDrawables(window, options);
 
-        window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip);
+    for (PlanetDrawable pd : pds) { window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip); }
+    for (PlanetDrawable pd : pds)
+    {
+        if (options.debug) this->drawBounds(window, pd.circle);
         window.draw(pd.circle);
+    }
+    for (PlanetDrawable pd : pds)
+    {
+        if (options.debug) this->drawBounds(window, pd.label);
+
         window.draw(pd.labelBackdrop);
         window.draw(pd.label);
     }
