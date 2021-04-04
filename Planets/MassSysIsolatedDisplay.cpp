@@ -6,6 +6,7 @@
 
 const double MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR = 1.0e-5;
 const unsigned int MassSysIsolatedDisplay::TRAIL_SIZE_MAX = (unsigned int)1.0e4;
+const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 20;
 
 sf::Font MassSysIsolatedDisplay::font{};
 
@@ -22,25 +23,31 @@ void MassSysIsolatedDisplay::calcPositions(std::atomic<bool>& running, std::mute
     }
 }
 
-std::vector<PlanetDrawable> MassSysIsolatedDisplay::getUnprocessedPlanetDrawables()
+std::vector<MBDrawable> MassSysIsolatedDisplay::getUnprocessedPlanetDrawables()
 {
-    std::vector<PlanetDrawable> planets = {};
+    std::vector<MBDrawable> planets = {};
 
     for (MassiveBody& mb : this->msi.mbs)
     {
+        HistoricalRenderData& rDataCur = this->mbRenderingData[mb.getID()];
         Vec2 pos = mb.getSIPos() * MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR;
 
         sf::CircleShape circle;
-        this->initCircle(circle, mb, pos);
-        this->initTrail(circle, mb, pos);
+        this->makeMBCircle(circle, mb, pos);
+
+        if (rDataCur.renderings % MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX == 0)
+        {
+            this->makeMBTrail(circle, mb, pos);
+        }
 
         sf::Text label;
-        this->initLabel(label, mb, pos);
+        this->makeMBLabel(label, mb, pos);
 
         sf::RectangleShape labelBackdrop;
-        this->initLabelBackdrop(labelBackdrop, label, mb, pos);
+        this->makeMBLabelBackdrop(labelBackdrop, label, mb, pos);
 
-        planets.emplace_back(PlanetDrawable{ circle, label, labelBackdrop, this->trails[mb.getID()] });
+        planets.emplace_back(MBDrawable{ circle, label, labelBackdrop, rDataCur.trailVertices });
+        ++rDataCur.renderings;
     }
 
     return planets;
@@ -52,38 +59,37 @@ sf::Color MassSysIsolatedDisplay::colourOf(MassiveBody& mb)
     return sf::Color(_c.r, _c.g, _c.b);
 }
 
-void MassSysIsolatedDisplay::initCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos)
+void MassSysIsolatedDisplay::makeMBCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos)
 {
     circle.setRadius(mb.getSIRadius() * MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR);
     circle.setPosition(pos.x, pos.y);
     circle.setFillColor(MassSysIsolatedDisplay::colourOf(mb));
 }
 
-void MassSysIsolatedDisplay::initTrail(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos)
+void MassSysIsolatedDisplay::makeMBTrail(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos)
 {
     unsigned int id = mb.getID();
 
-    if (this->trails.find(id) == this->trails.end())
+    if (this->mbRenderingData.find(id) == this->mbRenderingData.end())
     {
-        this->trails[id] = {};
+        this->mbRenderingData[id] = { std::vector<sf::Vertex>(), 0 };
     }
 
     sf::Vector2f trailPoint(pos.x + circle.getRadius(), pos.y + circle.getRadius());
 
     sf::Color colour = MassSysIsolatedDisplay::colourOf(mb);
 
-    std::vector<sf::Vertex>& trailVertices = this->trails[id];
+    std::vector<sf::Vertex>& trailVertices = this->mbRenderingData[id].trailVertices;
     trailVertices.emplace_back(sf::Vertex(trailPoint, colour));
 
     if (trailVertices.size() > TRAIL_SIZE_MAX)
     {
         trailVertices.erase(trailVertices.begin(), trailVertices.begin() + (trailVertices.size() - TRAIL_SIZE_MAX));
     }
-
-    std::cout << trailVertices.size() << std::endl;
+    // std::cout << trailVertices.size() << std::endl;
 }
 
-void MassSysIsolatedDisplay::initLabel(sf::Text& label, MassiveBody& mb, Vec2& pos)
+void MassSysIsolatedDisplay::makeMBLabel(sf::Text& label, MassiveBody& mb, Vec2& pos)
 {
     sf::Font& labelFont = MassSysIsolatedDisplay::font;
 
@@ -99,7 +105,7 @@ void MassSysIsolatedDisplay::initLabel(sf::Text& label, MassiveBody& mb, Vec2& p
     label.setPosition(pos.x, pos.y);
 }
 
-void MassSysIsolatedDisplay::initLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos)
+void MassSysIsolatedDisplay::makeMBLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos)
 {
     float labelW = label.getLocalBounds().width;
     float labelH = label.getLocalBounds().height;
@@ -111,11 +117,11 @@ void MassSysIsolatedDisplay::initLabelBackdrop(sf::RectangleShape& labelBackdrop
     labelBackdrop.setFillColor(sf::Color(0, 0, 0, 0));
 }
 
-std::vector<PlanetDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(const sf::RenderWindow& window, DrawingOptions& options)
+std::vector<MBDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(const sf::RenderWindow& window, DrawingOptions& options)
 {
-    std::vector<PlanetDrawable> planetDrawables = this->getUnprocessedPlanetDrawables();
+    std::vector<MBDrawable> planetDrawables = this->getUnprocessedPlanetDrawables();
 
-    for (PlanetDrawable& pd : planetDrawables)
+    for (MBDrawable& pd : planetDrawables)
     {
         this->applyZoom(pd, options);
     }
@@ -125,7 +131,7 @@ std::vector<PlanetDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(
     return planetDrawables;
 }
 
-void MassSysIsolatedDisplay::applyZoom(PlanetDrawable& pd, DrawingOptions& options)
+void MassSysIsolatedDisplay::applyZoom(MBDrawable& pd, DrawingOptions& options)
 {
     if (options.zoom > options.scalingThreshold)
     {
@@ -138,14 +144,14 @@ void MassSysIsolatedDisplay::applyZoom(PlanetDrawable& pd, DrawingOptions& optio
 }
 
 // TODO: Bugfix -- doesn't work if zoomed out & moving (???)
-void MassSysIsolatedDisplay::formLabelStacks(std::vector<PlanetDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options)
+void MassSysIsolatedDisplay::formLabelStacks(std::vector<MBDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options)
 {
     std::sort(planetDrawables.begin(), planetDrawables.end());
 
     for (int i = 1; i < planetDrawables.size(); ++i)
     {
-        PlanetDrawable& prevPD = planetDrawables[i - 1];
-        PlanetDrawable& curPD = planetDrawables[i];
+        MBDrawable& prevPD = planetDrawables[i - 1];
+        MBDrawable& curPD = planetDrawables[i];
 
         int prevX = window.mapCoordsToPixel(prevPD.label.getPosition()).x;
         int curX = window.mapCoordsToPixel(curPD.label.getPosition()).x;
@@ -168,15 +174,15 @@ void MassSysIsolatedDisplay::formLabelStacks(std::vector<PlanetDrawable>& planet
 
 void MassSysIsolatedDisplay::drawAll(sf::RenderWindow& window, DrawingOptions& options)
 {
-    std::vector<PlanetDrawable> pds = this->getProcessedPlanetDrawables(window, options);
+    std::vector<MBDrawable> pds = this->getProcessedPlanetDrawables(window, options);
 
-    for (PlanetDrawable pd : pds) { window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip); }
-    for (PlanetDrawable pd : pds)
+    for (MBDrawable pd : pds) { window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip); }
+    for (MBDrawable pd : pds)
     {
         if (options.debug) this->drawBounds(window, pd.circle);
         window.draw(pd.circle);
     }
-    for (PlanetDrawable pd : pds)
+    for (MBDrawable pd : pds)
     {
         if (options.debug) this->drawBounds(window, pd.label);
 

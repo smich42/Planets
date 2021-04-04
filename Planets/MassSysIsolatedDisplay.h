@@ -5,14 +5,14 @@
 #include <mutex>
 #include <SFML/Graphics.hpp>
 
-struct PlanetDrawable
+struct MBDrawable
 {
     sf::CircleShape circle;
     sf::Text label;
     sf::RectangleShape labelBackdrop;
     std::vector<sf::Vertex> trail;
 
-    bool operator <(const PlanetDrawable& pd) const
+    bool operator <(const MBDrawable& pd) const
     {
         return (this->label.getPosition().y < pd.label.getPosition().y);
     }
@@ -26,33 +26,40 @@ struct DrawingOptions
     bool debug;
 };
 
+struct HistoricalRenderData
+{
+    std::vector<sf::Vertex> trailVertices;
+    unsigned int renderings;
+};
+
 class MassSysIsolatedDisplay
 {
 private:
     static const double LENGTH_SCALE_DOWN_FACTOR;
     static const unsigned int TRAIL_SIZE_MAX;
+    static const unsigned int RENDERINGS_PER_VERTEX;
 
     static sf::Font font;
 
     static sf::Color colourOf(MassiveBody& mb);
 
-    void initCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
-    void initTrail(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
-    void initLabel(sf::Text& label, MassiveBody& mb, Vec2& pos);
-    void initLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos);
+    void makeMBCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
+    void makeMBTrail(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
+    void makeMBLabel(sf::Text& label, MassiveBody& mb, Vec2& pos);
+    void makeMBLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos);
 
-    void applyZoom(PlanetDrawable& pd, DrawingOptions& options);
-    void formLabelStacks(std::vector<PlanetDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options);
+    void applyZoom(MBDrawable& pd, DrawingOptions& options);
+    void formLabelStacks(std::vector<MBDrawable>& planetDrawables, const sf::RenderWindow& window, DrawingOptions& options);
 
-    std::vector<PlanetDrawable> getUnprocessedPlanetDrawables();
-    std::vector<PlanetDrawable> getProcessedPlanetDrawables(const sf::RenderWindow& window, DrawingOptions& options);
+    std::vector<MBDrawable> getUnprocessedPlanetDrawables();
+    std::vector<MBDrawable> getProcessedPlanetDrawables(const sf::RenderWindow& window, DrawingOptions& options);
 
     template<typename T>
     void drawBounds(sf::RenderWindow& window, T& text);
 
 public:
     MassSysIsolated& msi;
-    std::unordered_map<unsigned int, std::vector<sf::Vertex>> trails;
+    std::unordered_map<unsigned int, HistoricalRenderData> mbRenderingData;
 
     MassSysIsolatedDisplay(MassSysIsolated& msi);
 
