@@ -23,8 +23,8 @@
 
 #define SCALING_THRESHOLD 40.0f
 
-#define MAX_ZOOM 4.0e3
-#define MIN_ZOOM (1.0f / MAX_ZOOM)
+#define MAX_ZOOM (float)5.0e3
+#define MIN_ZOOM (1.0f / (float)MAX_ZOOM)
 
 void handleResizeEvent(sf::RenderWindow& window, const sf::Event& e, const float& resultantZoom)
 {

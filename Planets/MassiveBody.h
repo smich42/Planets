@@ -33,9 +33,12 @@ public:
     std::string getName() const;
 
     double getSIMass() const;
+
     double getSIRadius() const;
+    double getRadius(double multiplier) const;
 
     Vec2 getSIPos() const;
+    Vec2 getPos(double multiplier) const;
 
     Vec2 getSIVel() const;
     Vec2 getSIVelOrbital(MassiveBody& mb, bool clockwise);

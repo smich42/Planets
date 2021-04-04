@@ -54,9 +54,19 @@ double MassiveBody::getSIRadius() const
     return this->siRadius;
 }
 
+double MassiveBody::getRadius(double multiplier) const
+{
+    return this->siRadius * multiplier;
+}
+
 Vec2 MassiveBody::getSIPos() const
 {
     return this->siPos;
+}
+
+Vec2 MassiveBody::getPos(double multiplier) const
+{
+    return this->siPos * multiplier;
 }
 
 Vec2 MassiveBody::getSIVel() const

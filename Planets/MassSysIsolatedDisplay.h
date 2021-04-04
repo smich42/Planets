@@ -35,8 +35,8 @@ struct HistoricalRenderData
 class MassSysIsolatedDisplay
 {
 private:
-    static const double LENGTH_SCALE_DOWN_FACTOR;
-    static const unsigned int TRAIL_SIZE_MAX;
+    static const double SI_UNIT_MULTIPLIER;
+    static const unsigned int TRAIL_VERTEX_COUNT_MAX;
     static const unsigned int RENDERINGS_PER_VERTEX;
 
     static sf::Font font;

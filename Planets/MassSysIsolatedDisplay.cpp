@@ -4,8 +4,8 @@
 #include <Windows.h>
 #include <iostream>
 
-const double MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR = 1.0e-5;
-const unsigned int MassSysIsolatedDisplay::TRAIL_SIZE_MAX = (unsigned int)1.0e4;
+const double MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER = 1.0e-5;
+const unsigned int MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX = (unsigned int)1.0e4;
 const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 20;
 
 sf::Font MassSysIsolatedDisplay::font{};
@@ -30,7 +30,7 @@ std::vector<MBDrawable> MassSysIsolatedDisplay::getUnprocessedPlanetDrawables()
     for (MassiveBody& mb : this->msi.mbs)
     {
         HistoricalRenderData& rDataCur = this->mbRenderingData[mb.getID()];
-        Vec2 pos = mb.getSIPos() * MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR;
+        Vec2 pos = mb.getPos(MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER);
 
         sf::CircleShape circle;
         this->makeMBCircle(circle, mb, pos);
@@ -61,7 +61,7 @@ sf::Color MassSysIsolatedDisplay::colourOf(MassiveBody& mb)
 
 void MassSysIsolatedDisplay::makeMBCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos)
 {
-    circle.setRadius(mb.getSIRadius() * MassSysIsolatedDisplay::LENGTH_SCALE_DOWN_FACTOR);
+    circle.setRadius(mb.getRadius(MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER));
     circle.setPosition(pos.x, pos.y);
     circle.setFillColor(MassSysIsolatedDisplay::colourOf(mb));
 }
@@ -82,9 +82,9 @@ void MassSysIsolatedDisplay::makeMBTrail(sf::CircleShape& circle, MassiveBody& m
     std::vector<sf::Vertex>& trailVertices = this->mbRenderingData[id].trailVertices;
     trailVertices.emplace_back(sf::Vertex(trailPoint, colour));
 
-    if (trailVertices.size() > TRAIL_SIZE_MAX)
+    if (trailVertices.size() > TRAIL_VERTEX_COUNT_MAX)
     {
-        trailVertices.erase(trailVertices.begin(), trailVertices.begin() + (trailVertices.size() - TRAIL_SIZE_MAX));
+        trailVertices.erase(trailVertices.begin(), trailVertices.begin() + (trailVertices.size() - TRAIL_VERTEX_COUNT_MAX));
     }
     // std::cout << trailVertices.size() << std::endl;
 }
@@ -148,7 +148,7 @@ void MassSysIsolatedDisplay::formLabelStacks(std::vector<MBDrawable>& planetDraw
 {
     std::sort(planetDrawables.begin(), planetDrawables.end());
 
-    for (int i = 1; i < planetDrawables.size(); ++i)
+    for (unsigned int i = 1; i < planetDrawables.size(); ++i)
     {
         MBDrawable& prevPD = planetDrawables[i - 1];
         MBDrawable& curPD = planetDrawables[i];
