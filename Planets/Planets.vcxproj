@@ -154,19 +154,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp" />
+    <ClCompile Include="HUDComponent.cpp" />
     <ClCompile Include="HUDDisplay.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MassiveBody.cpp" />
     <ClCompile Include="MassSysIsolated.cpp" />
     <ClCompile Include="MassSysIsolatedDisplay.cpp" />
+    <ClCompile Include="SliderComponent.cpp" />
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display.h" />
+    <ClInclude Include="HUDComponent.h" />
     <ClInclude Include="HUDDisplay.h" />
     <ClInclude Include="MassiveBody.h" />
     <ClInclude Include="MassSysIsolated.h" />
     <ClInclude Include="MassSysIsolatedDisplay.h" />
+    <ClInclude Include="SliderComponent.h" />
     <ClInclude Include="SolarSysData.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>

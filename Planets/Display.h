@@ -13,11 +13,12 @@ class Display
 {
 protected:
     sf::RenderWindow& window;
+    sf::View& view;
     sf::Font font;
 
 public:
-    Display(sf::RenderWindow& window);
-    Display(sf::RenderWindow& window, sf::Font font);
+    Display(sf::RenderWindow& window, sf::View& view);
+    Display(sf::RenderWindow& window, sf::View& view, sf::Font& font);
 
     void drawFloatRect(sf::FloatRect fRect, sf::Vector2f pos, sf::Color colour);
 

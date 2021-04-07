@@ -16,36 +16,38 @@
 #include "SolarSysData.h"
 #include "MassSysIsolatedDisplay.h"
 #include "HUDDisplay.h"
+#include "SliderComponent.h"
 
-#define BACKGROUND_COLOUR sf::Color(5, 10, 30)
+#define BACKGROUND_COLOUR sf::Color(5, 15, 30)
 
 #define WIN_WIDTH 960
 #define WIN_HEIGHT 640
 
+#define WIN_MARGIN 15
+
 #define SCALING_THRESHOLD 40.0f
 
 #define MAX_ZOOM (float)5.0e3
-#define MIN_ZOOM (0.8f)
+#define MIN_ZOOM (1.0f)
 
-void handleResizeEvent(sf::RenderWindow& window, const sf::Event& e, const float& resultantZoom)
+void handleResizeEvent(sf::RenderWindow& window, sf::View& planetsView, sf::View& guiView, const sf::Event& e, const float& resultantZoom)
 {
     if (e.type == sf::Event::Resized)
     {
-        sf::View view(sf::FloatRect(0, 0, e.size.width, e.size.height));
+        planetsView = sf::View(sf::FloatRect(0, 0, e.size.width, e.size.height));
+        guiView = sf::View(sf::FloatRect(0, 0, e.size.width, e.size.height));
 
-        view.setCenter(window.getView().getCenter());
-        view.zoom(resultantZoom);
+        planetsView.setCenter(window.getView().getCenter());
+        planetsView.zoom(resultantZoom);
 
-        window.setView(view);
+        window.setView(planetsView);
     }
 }
 
-void handleScrollEvent(sf::RenderWindow& window, const sf::Event& e, float& resultantZoom)
+void handleScrollEvent(sf::RenderWindow& window, sf::View& planetsView, const sf::Event& e, float& resultantZoom)
 {
     if (e.type == sf::Event::MouseWheelScrolled)
     {
-        sf::View view = window.getView();
-
         float delta = e.mouseWheelScroll.delta;
 
         if (delta == 0)
@@ -63,53 +65,53 @@ void handleScrollEvent(sf::RenderWindow& window, const sf::Event& e, float& resu
 
         resultantZoom *= zoom;
 
-        view.zoom(zoom);
+        planetsView.zoom(zoom);
 
-        window.setView(view);
+        window.setView(planetsView);
     }
 }
 
-void panScreen(sf::RenderWindow& window, const sf::Vector2f& offset)
+void panScreen(sf::RenderWindow& window, sf::View& planetsView, const sf::Vector2f& offset)
 {
-    sf::View view = window.getView();
-
-    view.move(offset.x, offset.y);
-    window.setView(view);
+    planetsView.move(offset.x, offset.y);
+    window.setView(planetsView);
 }
 
-void drawFPS(sf::RenderWindow& window, int fpsCount, float resultantZoom)
+void drawFPS(sf::RenderWindow& window, int fps, float resultantZoom)
 {
     sf::Font fpsFont;
-    sf::Text fps;
+    sf::Text fpsLabel;
 
     fpsFont.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
-    fps.setFont(fpsFont);
+    fpsLabel.setFont(fpsFont);
 
-    fps.setCharacterSize(16);
-    fps.setFillColor(sf::Color(70, 230, 50));
-    fps.setScale(resultantZoom, resultantZoom);
+    fpsLabel.setCharacterSize(16);
+    fpsLabel.setFillColor(sf::Color(70, 230, 50));
+    fpsLabel.setScale(resultantZoom, resultantZoom);
 
-    fps.setString(std::to_string(fpsCount) + " fps");
+    fpsLabel.setString(std::to_string(fps) + " fps");
 
-    sf::FloatRect fpsTextBounds = fps.getGlobalBounds();
-    fps.setPosition(window.mapPixelToCoords(sf::Vector2i(0, 0)));
+    sf::Vector2f pos = window.mapPixelToCoords(sf::Vector2i(window.getSize().x - WIN_MARGIN, WIN_MARGIN));
 
-    window.draw(fps);
+    fpsLabel.setPosition(pos.x - fpsLabel.getGlobalBounds().width, pos.y);
+
+    window.draw(fpsLabel);
 }
 
-int main()
+void simulate()
 {
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antialiasingLevel = 10;
 
     float resultantZoom = 1.0f;
 
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Planets!", sf::Style::Default, settings);
 
-    window.setView(sf::View(sf::Vector2f(0, 0), sf::Vector2f(WIN_WIDTH, WIN_HEIGHT)));
-    window.setVerticalSyncEnabled(true);
+    sf::View planetsView = sf::View(sf::Vector2f(0, 0), sf::Vector2f(WIN_WIDTH, WIN_HEIGHT));
+    sf::View guiView = sf::View(sf::Vector2f(WIN_WIDTH / 2, WIN_HEIGHT / 2), sf::Vector2f(WIN_WIDTH, WIN_HEIGHT));
+
+    window.setView(planetsView);
+    //window.setVerticalSyncEnabled(true);
 
     MassiveBody sun(SolarSysBody::SUN, Vec2(-152e9, 0));
     MassiveBody earth(SolarSysBody::EARTH, Vec2(0, 0));
@@ -121,26 +123,48 @@ int main()
     moon.attemptOrbit(earth, true);
 
     MassSysIsolated msi({ sun, earth,  moon, mars });
-    MassSysIsolatedDisplay msiDisplay(msi, window);
-    HUDDisplay hudDisplay(window);
+    MassSysIsolatedDisplay msiDisplay(msi, window, planetsView);
+
+    HUDDisplay hudDisplay(window, guiView);
+
+    SliderComponent updateIntervalSlider = SliderComponent(0.005, 0.02, sf::Vector2f(WIN_MARGIN, WIN_MARGIN), window, guiView);
+    updateIntervalSlider.setForegroundColour(sf::Color(140, 35, 70));
+    updateIntervalSlider.setValue(0.01);
+    updateIntervalSlider.setName("Physics update frequency (prefer high)");
+    updateIntervalSlider.setUnit("MHz");
+
+    SliderComponent speedFactorSlider = SliderComponent(1, 100000, sf::Vector2f(WIN_MARGIN, WIN_MARGIN + 50.0f), window, guiView);
+    speedFactorSlider.setForegroundColour(sf::Color(35, 140, 70));
+    speedFactorSlider.setValue(1000);
+    speedFactorSlider.setName("Simulation speed multiplier (prefer low)");
+
+    hudDisplay.addComponent(&updateIntervalSlider);
+    hudDisplay.addComponent(&speedFactorSlider);
 
     sf::Vector2f mousePosPrev;
     bool panning = false;
 
-    bool debug = false;
     sf::Clock physicsClock;
-    sf::Clock fpsClock;
+    sf::Clock fpsMeasureClock;
+    sf::Clock fpsUpdateClock;
+
     sf::Time accumulator = sf::microseconds(0);
-    sf::Time physicsTime = sf::microseconds(100);
+    sf::Time physicsTime = sf::microseconds(1.0f / updateIntervalSlider.getValue());
+
+    bool debug = false;
+    unsigned int fps = 0;
+    unsigned int frameCount = 0;
 
     while (window.isOpen())
     {
+        physicsTime = sf::microseconds(1.0f / updateIntervalSlider.getValue());
+
         accumulator += physicsClock.getElapsedTime();
         physicsClock.restart();
 
         while (accumulator >= physicsTime)
         {
-            msiDisplay.msi.budgeAll(physicsTime.asSeconds() * 1000);
+            msiDisplay.msi.budgeAll(physicsTime.asSeconds() * speedFactorSlider.getValue());
             accumulator -= physicsTime;
         }
 
@@ -155,21 +179,23 @@ int main()
                 break;
 
             case sf::Event::Resized:
-                handleResizeEvent(window, e, resultantZoom);
+                handleResizeEvent(window, planetsView, guiView, e, resultantZoom);
                 break;
 
             case sf::Event::MouseWheelScrolled:
-                handleScrollEvent(window, e, resultantZoom);
+                handleScrollEvent(window, planetsView, e, resultantZoom);
                 break;
 
             case sf::Event::MouseButtonPressed:
+                hudDisplay.processMouseEvent(e);
+
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
                 {
                     panning = true;
 
-                    sf::Cursor cursor;
-                    cursor.loadFromSystem(sf::Cursor::SizeAll);
-                    window.setMouseCursor(cursor);
+                    //sf::Cursor cursor;
+                    //cursor.loadFromSystem(sf::Cursor::SizeAll);
+                    //window.setMouseCursor(cursor);
 
                     mousePosPrev = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 }
@@ -184,9 +210,9 @@ int main()
                 {
                     panning = false;
 
-                    sf::Cursor cursor;
-                    cursor.loadFromSystem(sf::Cursor::Arrow);
-                    window.setMouseCursor(cursor);
+                    //sf::Cursor cursor;
+                    //cursor.loadFromSystem(sf::Cursor::Arrow);
+                    //window.setMouseCursor(cursor);
                 }
                 break;
 
@@ -201,7 +227,7 @@ int main()
                         break;
                     }
 
-                    panScreen(window, offset);
+                    panScreen(window, planetsView, offset);
                     mousePosPrev = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 }
                 break;
@@ -217,14 +243,28 @@ int main()
 
         if (debug)
         {
-            int fpsCount = (int)1.0f / fpsClock.getElapsedTime().asSeconds();
-            drawFPS(window, fpsCount, resultantZoom);
+            drawFPS(window, fps, resultantZoom);
+
+            if (fpsUpdateClock.getElapsedTime() >= sf::seconds(1.0f))
+            {
+                fps = round(frameCount / fpsMeasureClock.getElapsedTime().asSeconds());
+
+                frameCount = 0;
+                fpsUpdateClock.restart();
+                fpsMeasureClock.restart();
+            }
         }
 
-        fpsClock.restart();
-
+        ++frameCount;
         window.display();
     }
+}
+
+int main()
+{
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    simulate();
 
     return 0;
 }

@@ -19,7 +19,6 @@ struct MBDrawable
     }
 };
 
-
 struct HistoricalRenderData
 {
     std::vector<sf::Vertex> trailVertices;
@@ -50,8 +49,8 @@ public:
     MassSysIsolated& msi;
     std::unordered_map<unsigned int, HistoricalRenderData> mbRenderingData;
 
-    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window);
-    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::Font font);
+    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::View& view);
+    explicit MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::View& view, sf::Font font);
 
     void calcPositionsAsync(std::atomic<bool>& running, std::mutex* mu);
     void drawAll(DrawingOptions& options) override;

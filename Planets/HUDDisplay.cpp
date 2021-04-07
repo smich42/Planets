@@ -1,28 +1,46 @@
 #include "HUDDisplay.h"
+#include <iostream>
 
-HUDDisplay::HUDDisplay(sf::RenderWindow& window) : Display(window)
+HUDDisplay::HUDDisplay(sf::RenderWindow& window, sf::View& view) : Display(window, view)
 {}
 
-HUDDisplay::HUDDisplay(sf::RenderWindow& window, sf::Font font) : Display(window, font)
+HUDDisplay::HUDDisplay(sf::RenderWindow& window, sf::View& view, sf::Font& font) : Display(window, view, font)
 {}
 
-SliderDisplayable HUDDisplay::makeSpeedSlider(DrawingOptions options)
+void HUDDisplay::addComponent(HUDComponent* component)
 {
-    sf::RectangleShape sliderBackground;
-    sliderBackground.setSize(sf::Vector2f(50, 10));
-    sliderBackground.setScale(options.zoom, options.zoom);
-    sliderBackground.setFillColor(sf::Color::White);
+    component->font = this->font;
+    components.emplace_back(component);
+}
 
-    sf::Vector2f pos = this->window.mapPixelToCoords(
-        sf::Vector2i(this->window.getSize().x - sliderBackground.getGlobalBounds().width, 0));
+void HUDDisplay::processMouseEvent(sf::Event& eMouse)
+{
+    sf::View oldView = this->window.getView();
+    this->window.setView(this->view);
 
-    return { sliderBackground };
+    for (HUDComponent* component : components)
+    {
+        if (component != nullptr)
+        {
+            component->processMouseEvent(eMouse);
+        }
+    }
+
+    this->window.setView(oldView);
 }
 
 void HUDDisplay::drawAll(DrawingOptions& options)
 {
-    SliderDisplayable sd = this->makeSpeedSlider(options);
+    sf::View oldView = this->window.getView();
+    this->window.setView(this->view);
 
-    this->window.draw(sd.sliderBackground);
-    if (options.debug) this->drawBoundsFor(sd.sliderBackground);
+    for (HUDComponent* component : this->components)
+    {
+        if (component != nullptr)
+        {
+            component->draw(options);
+        }
+    }
+
+    this->window.setView(oldView);
 }

@@ -1,9 +1,11 @@
 #include "Display.h"
 
-Display::Display(sf::RenderWindow& window) : window(window)
-{}
+Display::Display(sf::RenderWindow& window, sf::View& view) : window(window), view(view)
+{
+    font.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
+}
 
-Display::Display(sf::RenderWindow& window, sf::Font font) : window(window), font(font)
+Display::Display(sf::RenderWindow& window, sf::View& view, sf::Font& font) : window(window), view(view), font(font)
 {}
 
 void Display::drawFloatRect(sf::FloatRect fRect, sf::Vector2f pos, sf::Color colour)

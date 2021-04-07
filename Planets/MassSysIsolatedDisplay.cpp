@@ -6,13 +6,17 @@
 
 const double MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER = 1.0e-5;
 const unsigned int MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX = (unsigned int)1.0e4;
-const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 20;
+const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 8/*20*/;
 
-MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window) : msi(msi), Display(window)
-{}
+MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::View& view) : msi(msi), Display(window, view)
+{
+    this->font.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
+}
 
-MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::Font font) : msi(msi), Display(window, font)
-{}
+MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::View& view, sf::Font font) : msi(msi), Display(window, view, font)
+{
+    this->font.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
+}
 
 void MassSysIsolatedDisplay::calcPositionsAsync(std::atomic<bool>& running, std::mutex* mu)
 {
@@ -93,11 +97,7 @@ void MassSysIsolatedDisplay::makeMBTrail(sf::CircleShape& circle, MassiveBody& m
 
 void MassSysIsolatedDisplay::makeMBLabel(sf::Text& label, MassiveBody& mb, Vec2& pos)
 {
-    sf::Font& labelFont = this->font;
-
-    labelFont.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
-
-    label.setFont(labelFont);
+    label.setFont(this->font);
     label.setString(mb.getName());
     label.setCharacterSize(14);
     //label.setFillColor(sf::Color::Black);
@@ -176,6 +176,9 @@ void MassSysIsolatedDisplay::formLabelStacks(std::vector<MBDrawable>& planetDraw
 
 void MassSysIsolatedDisplay::drawAll(DrawingOptions& options)
 {
+    sf::View oldView = this->window.getView();
+    this->window.setView(this->view);
+
     std::vector<MBDrawable> pds = this->getProcessedPlanetDrawables(options);
 
     for (MBDrawable pd : pds) { window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip); }
@@ -191,4 +194,6 @@ void MassSysIsolatedDisplay::drawAll(DrawingOptions& options)
         window.draw(pd.labelBackdrop);
         window.draw(pd.label);
     }
+
+    this->window.setView(oldView);
 }
