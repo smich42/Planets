@@ -5,7 +5,6 @@ struct DrawingOptions
 {
     int pxLabelYSpacing;
     float zoom;
-    float scalingThreshold;
     bool debug;
 };
 

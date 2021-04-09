@@ -25,9 +25,7 @@
 
 #define WIN_MARGIN 15
 
-#define SCALING_THRESHOLD 40.0f
-
-#define MAX_ZOOM (float)5.0e3
+#define MAX_ZOOM (float)5.0e4
 #define MIN_ZOOM (1.0f)
 
 void handleResizeEvent(sf::RenderWindow& window, sf::View& planetsView, sf::View& guiView, const sf::Event& e, const float& resultantZoom)
@@ -113,10 +111,10 @@ void simulate()
     window.setView(planetsView);
     //window.setVerticalSyncEnabled(true);
 
-    MassiveBody sun(SolarSysBody::SUN, Vec2(-152e9, 0));
-    MassiveBody earth(SolarSysBody::EARTH, Vec2(0, 0));
-    MassiveBody moon(SolarSysBody::LUNA, Vec2(0.384402e9, 0));
-    MassiveBody mars(SolarSysBody::MARS, Vec2(54.6e9, 0));
+    MassiveBody sun(SolarSysBody::SUN, Vec2(0, 0));
+    MassiveBody earth(SolarSysBody::EARTH, Vec2(152e9, 0));
+    MassiveBody moon(SolarSysBody::LUNA, Vec2(152e9 + 0.384402e9, 0));
+    MassiveBody mars(SolarSysBody::MARS, Vec2(152e9 + 54.6e9, 0));
 
     //earth.attemptOrbit(sun, true);
     //mars.attemptOrbit(sun, true);
@@ -236,7 +234,7 @@ void simulate()
 
         window.clear(BACKGROUND_COLOUR);
 
-        DrawingOptions options = { 15, resultantZoom, SCALING_THRESHOLD, debug };
+        DrawingOptions options = { 15, resultantZoom, debug };
 
         msiDisplay.drawAll(options);
         hudDisplay.drawAll(options);

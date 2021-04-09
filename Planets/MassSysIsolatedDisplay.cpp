@@ -6,7 +6,7 @@
 
 const double MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER = 1.0e-5;
 const unsigned int MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX = (unsigned int)1.0e4;
-const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 8/*20*/;
+const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 8;
 
 MassSysIsolatedDisplay::MassSysIsolatedDisplay(MassSysIsolated& msi, sf::RenderWindow& window, sf::View& view) : msi(msi), Display(window, view)
 {
@@ -135,12 +135,6 @@ std::vector<MBDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(Draw
 
 void MassSysIsolatedDisplay::applyZoom(MBDrawable& pd, DrawingOptions& options)
 {
-    if (options.zoom > options.scalingThreshold)
-    {
-        float scale = options.zoom / options.scalingThreshold;
-        pd.circle.setScale(scale, scale);
-    }
-
     pd.label.setScale(options.zoom, options.zoom);
     pd.labelBackdrop.setScale(options.zoom, options.zoom);
 }
