@@ -10,8 +10,7 @@ struct MBDrawable
 {
     sf::CircleShape circle;
     sf::Text label;
-    sf::RectangleShape labelBackdrop;
-    std::vector<sf::Vertex> trail;
+    std::vector<sf::Vertex>* trail;
 
     bool operator <(const MBDrawable& pd) const
     {
@@ -37,7 +36,6 @@ private:
     void makeMBCircle(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
     void makeMBTrail(sf::CircleShape& circle, MassiveBody& mb, Vec2& pos);
     void makeMBLabel(sf::Text& label, MassiveBody& mb, Vec2& pos);
-    void makeMBLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos);
 
     void applyZoom(MBDrawable& pd, DrawingOptions& options);
     void formLabelStacks(std::vector<MBDrawable>& planetDrawables, DrawingOptions& options);

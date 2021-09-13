@@ -40,6 +40,7 @@ public:
     Vec2 getSIPos() const;
     Vec2 getPos(double multiplier) const;
 
+    void setSIVel(Vec2 siVel);
     Vec2 getSIVel() const;
     Vec2 getSIVelOrbital(MassiveBody& mb, bool clockwise);
 

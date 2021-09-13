@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <iostream>
 
-const double MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER = 1.0e-5;
+const double MassSysIsolatedDisplay::SI_UNIT_MULTIPLIER = 1.0e-6;
 const unsigned int MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX = (unsigned int)1.0e4;
 const unsigned int MassSysIsolatedDisplay::RENDERINGS_PER_VERTEX = 8;
 
@@ -49,10 +49,7 @@ std::vector<MBDrawable> MassSysIsolatedDisplay::getUnprocessedPlanetDrawables()
         sf::Text label;
         this->makeMBLabel(label, mb, pos);
 
-        sf::RectangleShape labelBackdrop;
-        this->makeMBLabelBackdrop(labelBackdrop, label, mb, pos);
-
-        planets.emplace_back(MBDrawable{ circle, label, labelBackdrop, rDataCur.trailVertices });
+        planets.emplace_back(MBDrawable{ circle, label, &rDataCur.trailVertices });
         ++rDataCur.renderings;
     }
 
@@ -88,9 +85,9 @@ void MassSysIsolatedDisplay::makeMBTrail(sf::CircleShape& circle, MassiveBody& m
     std::vector<sf::Vertex>& trailVertices = this->mbRenderingData[id].trailVertices;
     trailVertices.emplace_back(sf::Vertex(trailPoint, colour));
 
-    if (trailVertices.size() > TRAIL_VERTEX_COUNT_MAX)
+    if (trailVertices.size() > MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX)
     {
-        trailVertices.erase(trailVertices.begin(), trailVertices.begin() + (trailVertices.size() - TRAIL_VERTEX_COUNT_MAX));
+        trailVertices.erase(trailVertices.begin(), trailVertices.begin() + (trailVertices.size() - MassSysIsolatedDisplay::TRAIL_VERTEX_COUNT_MAX));
     }
     // std::cout << trailVertices.size() << std::endl;
 }
@@ -107,18 +104,6 @@ void MassSysIsolatedDisplay::makeMBLabel(sf::Text& label, MassiveBody& mb, Vec2&
     label.setPosition(pos.x, pos.y);
 }
 
-void MassSysIsolatedDisplay::makeMBLabelBackdrop(sf::RectangleShape& labelBackdrop, sf::Text& label, MassiveBody& mb, Vec2& pos)
-{
-    float labelW = label.getLocalBounds().width;
-    float labelH = label.getLocalBounds().height;
-
-    labelBackdrop.setSize(sf::Vector2f(labelW, labelH));
-    labelBackdrop.setPosition(pos.x, pos.y);
-    labelBackdrop.setOutlineColor(sf::Color(0, 0, 0, 0));
-    //labelBackdrop.setFillColor(sf::Color(255, 255, 255, 128));
-    labelBackdrop.setFillColor(sf::Color(0, 0, 0, 0));
-}
-
 std::vector<MBDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(DrawingOptions& options)
 {
     std::vector<MBDrawable> planetDrawables = this->getUnprocessedPlanetDrawables();
@@ -130,19 +115,27 @@ std::vector<MBDrawable> MassSysIsolatedDisplay::getProcessedPlanetDrawables(Draw
 
     this->formLabelStacks(planetDrawables, options);
 
+    auto compSize = [](MBDrawable& a, MBDrawable& b) {
+        return (a.circle.getRadius() > b.circle.getRadius());
+    };
+
+    std::sort(planetDrawables.begin(), planetDrawables.end(), compSize);
+
     return planetDrawables;
 }
 
 void MassSysIsolatedDisplay::applyZoom(MBDrawable& pd, DrawingOptions& options)
 {
     pd.label.setScale(options.zoom, options.zoom);
-    pd.labelBackdrop.setScale(options.zoom, options.zoom);
 }
 
-// TODO: Bugfix -- doesn't work if zoomed out & moving (???)
 void MassSysIsolatedDisplay::formLabelStacks(std::vector<MBDrawable>& planetDrawables, DrawingOptions& options)
 {
-    std::sort(planetDrawables.begin(), planetDrawables.end());
+    auto compYPos = [](MBDrawable& a, MBDrawable& b) {
+        return (a.label.getPosition().y < b.label.getPosition().y);
+    };
+
+    std::sort(planetDrawables.begin(), planetDrawables.end(), compYPos);
 
     for (unsigned int i = 1; i < planetDrawables.size(); ++i)
     {
@@ -164,7 +157,6 @@ void MassSysIsolatedDisplay::formLabelStacks(std::vector<MBDrawable>& planetDraw
         }
 
         curPD.label.setPosition(this->window.mapPixelToCoords(sf::Vector2i(curX, curY)));
-        curPD.labelBackdrop.setPosition(this->window.mapPixelToCoords(sf::Vector2i(curX, curY)));
     }
 }
 
@@ -173,19 +165,18 @@ void MassSysIsolatedDisplay::drawAll(DrawingOptions& options)
     sf::View oldView = this->window.getView();
     this->window.setView(this->view);
 
-    std::vector<MBDrawable> pds = this->getProcessedPlanetDrawables(options);
+    const std::vector<MBDrawable> pds = this->getProcessedPlanetDrawables(options);
 
-    for (MBDrawable pd : pds) { window.draw(pd.trail.data(), pd.trail.size(), sf::LinesStrip); }
-    for (MBDrawable pd : pds)
+    for (const MBDrawable& pd : pds) { window.draw(pd.trail->data(), pd.trail->size(), sf::LinesStrip); }
+    for (const MBDrawable& pd : pds)
     {
         if (options.debug) this->drawBoundsFor(pd.circle);
         window.draw(pd.circle);
     }
-    for (MBDrawable pd : pds)
+    for (const MBDrawable& pd : pds)
     {
         if (options.debug) this->drawBoundsFor(pd.label);
 
-        window.draw(pd.labelBackdrop);
         window.draw(pd.label);
     }
 

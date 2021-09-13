@@ -94,6 +94,11 @@ void MassiveBody::attemptOrbit(MassiveBody& mb, bool clockwise)
     this->siVel = this->getSIVelOrbital(mb, clockwise);
 }
 
+void MassiveBody::setSIVel(Vec2 siVel)
+{
+    this->siVel = siVel;
+}
+
 Vec2 MassiveBody::getSIGravForce(MassiveBody& mb)
 {
     if (mb == *this)

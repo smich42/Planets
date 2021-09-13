@@ -143,7 +143,7 @@ static const std::unordered_map<SolarSysBody, Colour> SOLAR_SYS_SI_COLOURS = {
     { SolarSysBody::NEPTUNE,  Colour() },
     { SolarSysBody::EARTH,    Colour(0, 150, 255) },
     { SolarSysBody::VENUS,    Colour() },
-    { SolarSysBody::MARS,     Colour(255, 80, 0) },
+    { SolarSysBody::MARS,     Colour(255, 40, 0) },
     { SolarSysBody::GANYMEDE, Colour() },
     { SolarSysBody::TITAN,    Colour() },
     { SolarSysBody::MERCURY,  Colour() },

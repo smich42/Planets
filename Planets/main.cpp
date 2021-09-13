@@ -25,8 +25,8 @@
 
 #define WIN_MARGIN 15
 
-#define MAX_ZOOM (float)5.0e4
-#define MIN_ZOOM (1.0f)
+#define MAX_ZOOM ((float)1.e4)
+#define MIN_ZOOM 1.f
 
 void handleResizeEvent(sf::RenderWindow& window, sf::View& planetsView, sf::View& guiView, const sf::Event& e, const float& resultantZoom)
 {
@@ -53,8 +53,8 @@ void handleScrollEvent(sf::RenderWindow& window, sf::View& planetsView, const sf
             return;
         }
 
-        float zoomFactor = 0.2f;
-        float zoom = ((delta > 0) ? (1.0f - zoomFactor) : (1.0f + zoomFactor));
+        float zoomFactor = 0.15f;
+        float zoom = ((delta > 0) ? (1.f - zoomFactor) : (1.f + zoomFactor));
 
         float candidateZoom = resultantZoom * zoom;
 
@@ -75,13 +75,11 @@ void panScreen(sf::RenderWindow& window, sf::View& planetsView, const sf::Vector
     window.setView(planetsView);
 }
 
-void drawFPS(sf::RenderWindow& window, int fps, float resultantZoom)
+void drawFPS(sf::RenderWindow& window, int fps, float resultantZoom, sf::Font& font)
 {
-    sf::Font fpsFont;
     sf::Text fpsLabel;
 
-    fpsFont.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
-    fpsLabel.setFont(fpsFont);
+    fpsLabel.setFont(font);
 
     fpsLabel.setCharacterSize(16);
     fpsLabel.setFillColor(sf::Color(70, 230, 50));
@@ -101,8 +99,6 @@ void simulate()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 10;
 
-    float resultantZoom = 1.0f;
-
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Planets!", sf::Style::Default, settings);
 
     sf::View planetsView = sf::View(sf::Vector2f(0, 0), sf::Vector2f(WIN_WIDTH, WIN_HEIGHT));
@@ -116,25 +112,25 @@ void simulate()
     MassiveBody moon(SolarSysBody::LUNA, Vec2(152e9 + 0.384402e9, 0));
     MassiveBody mars(SolarSysBody::MARS, Vec2(152e9 + 54.6e9, 0));
 
-    //earth.attemptOrbit(sun, true);
-    //mars.attemptOrbit(sun, true);
-    moon.attemptOrbit(earth, true);
+    earth.setSIVel(Vec2(0, 29.79e3));
+    mars.setSIVel(Vec2(0, 24.13e3));
+    moon.setSIVel(Vec2(0, 1.028e3 + 29.79e3));
 
     MassSysIsolated msi({ sun, earth,  moon, mars });
     MassSysIsolatedDisplay msiDisplay(msi, window, planetsView);
 
     HUDDisplay hudDisplay(window, guiView);
 
-    SliderComponent updateIntervalSlider = SliderComponent(0.005, 0.02, sf::Vector2f(WIN_MARGIN, WIN_MARGIN), window, guiView);
+    SliderComponent updateIntervalSlider = SliderComponent(0.003, 0.03, sf::Vector2f(WIN_MARGIN, WIN_MARGIN), window, guiView);
     updateIntervalSlider.setForegroundColour(sf::Color(140, 35, 70));
-    updateIntervalSlider.setValue(0.01);
+    updateIntervalSlider.setValue(0.02);
     updateIntervalSlider.setName("Physics update frequency (prefer high)");
     updateIntervalSlider.setUnit("MHz");
 
-    SliderComponent speedFactorSlider = SliderComponent(1, 100000, sf::Vector2f(WIN_MARGIN, WIN_MARGIN + 50.0f), window, guiView);
+    SliderComponent speedFactorSlider = SliderComponent(1, 100000, sf::Vector2f(WIN_MARGIN, WIN_MARGIN + 50.f), window, guiView);
     speedFactorSlider.setForegroundColour(sf::Color(35, 140, 70));
-    speedFactorSlider.setValue(1000);
-    speedFactorSlider.setName("Simulation speed multiplier (prefer low)");
+    speedFactorSlider.setValue(1);
+    speedFactorSlider.setName("Integration dt factor (prefer low)");
 
     hudDisplay.addComponent(&updateIntervalSlider);
     hudDisplay.addComponent(&speedFactorSlider);
@@ -147,15 +143,20 @@ void simulate()
     sf::Clock fpsUpdateClock;
 
     sf::Time accumulator = sf::microseconds(0);
-    sf::Time physicsTime = sf::microseconds(1.0f / updateIntervalSlider.getValue());
+    sf::Time physicsTime = sf::microseconds(1.f / updateIntervalSlider.getValue());
 
     bool debug = false;
+    float resultantZoom = 1.f;
+
+    sf::Font fpsFont;
+    fpsFont.loadFromFile("fonts/Ubuntu/Ubuntu-Medium.ttf");
+
     unsigned int fps = 0;
     unsigned int frameCount = 0;
 
     while (window.isOpen())
     {
-        physicsTime = sf::microseconds(1.0f / updateIntervalSlider.getValue());
+        physicsTime = sf::microseconds(1.f / updateIntervalSlider.getValue());
 
         accumulator += physicsClock.getElapsedTime();
         physicsClock.restart();
@@ -190,11 +191,6 @@ void simulate()
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
                 {
                     panning = true;
-
-                    //sf::Cursor cursor;
-                    //cursor.loadFromSystem(sf::Cursor::SizeAll);
-                    //window.setMouseCursor(cursor);
-
                     mousePosPrev = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 }
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
@@ -207,10 +203,6 @@ void simulate()
                 if (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
                 {
                     panning = false;
-
-                    //sf::Cursor cursor;
-                    //cursor.loadFromSystem(sf::Cursor::Arrow);
-                    //window.setMouseCursor(cursor);
                 }
                 break;
 
@@ -238,19 +230,15 @@ void simulate()
 
         msiDisplay.drawAll(options);
         hudDisplay.drawAll(options);
+        drawFPS(window, fps, resultantZoom, fpsFont);
 
-        if (debug)
+        if (fpsUpdateClock.getElapsedTime() >= sf::seconds(1.f))
         {
-            drawFPS(window, fps, resultantZoom);
+            fps = round(frameCount / fpsMeasureClock.getElapsedTime().asSeconds());
 
-            if (fpsUpdateClock.getElapsedTime() >= sf::seconds(1.0f))
-            {
-                fps = round(frameCount / fpsMeasureClock.getElapsedTime().asSeconds());
-
-                frameCount = 0;
-                fpsUpdateClock.restart();
-                fpsMeasureClock.restart();
-            }
+            frameCount = 0;
+            fpsUpdateClock.restart();
+            fpsMeasureClock.restart();
         }
 
         ++frameCount;

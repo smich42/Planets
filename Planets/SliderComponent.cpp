@@ -112,13 +112,13 @@ void SliderComponent::draw(DrawingOptions& options)
     labelName.setString(this->name);
 
     float xAfter = this->pos.x + this->backgroundRect.getGlobalBounds().width;
-    float yBelow = this->pos.y + this->backgroundRect.getGlobalBounds().height + 5.0f;
+    float yBelow = this->pos.y + this->backgroundRect.getGlobalBounds().height + 5.f;
 
     float labelRightW = labelRight.getGlobalBounds().width;
 
     labelLeft.setPosition(this->pos.x, yBelow);
     labelRight.setPosition(xAfter - labelRightW, yBelow);
-    labelName.setPosition(xAfter + 10.0f, this->pos.y);
+    labelName.setPosition(xAfter + 10.f, this->pos.y);
 
     this->window.draw(labelLeft);
     this->window.draw(labelRight);
